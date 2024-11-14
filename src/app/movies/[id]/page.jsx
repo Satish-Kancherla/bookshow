@@ -2,18 +2,58 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
-import movies from "../../../../public/movies";
+// import movies from "../../../../public/movies";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft, Play, Share2, User } from "lucide-react";
+import { ArrowLeft, Edit, Edit2, Play, Share2, Trash2, User } from "lucide-react";
+import { useEffect, useState } from "react";
+import axios from "axios";
 
 const MovieDetails = () => {
     const router = useRouter();
     const { id } = useParams();
+    const [movie, setMovie] = useState([]);
+    const [loading, setLoading] = useState(true);
 
-    const movie = movies.find((m) => m.id === Number(id)); // replace with actual data fetch
+    // const movie = movies.find((m) => m.id === Number(id)); // replace with actual data fetch
     const showTimings = ["10:00 AM", "1:00 PM", "4:00 PM"]; // example timings
+
+    const fetchMovie = async () => {
+        try {
+            const response = await axios.get(`/api/movies/${id}`);
+            setMovie(response.data);
+            setLoading(false);
+        } catch (err) {
+            console.log("Failed to fetch movie details:", err);
+            setLoading(false);
+        }
+    };
+    console.log(movie);
+
+    useEffect(() => {
+        fetchMovie();
+    }, [id]);
+
+    const handleDelete = async () => {
+        try {
+            await axios.delete(`/api/movies/${id}`);
+            router.push("/movies");
+        } catch (error) {
+            console.log("Error deleting movie:", error);
+        }
+    };
+
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <div className="text-center">
+                    <p className="text-xl font-semibold">Loading...</p>
+                </div>
+            </div>
+        );
+    }
+
 
     return (
         <div>
@@ -21,15 +61,33 @@ const MovieDetails = () => {
                 {/* Background gradient overlay */}
                 <div className="absolute inset-0 bg-gradient-to-r from-black via-black/50 to-transparent z-0" />
                 <div className="relative z-10 container mx-auto px-4 py-6">
-                    <ArrowLeft onClick={router.back} size={30} className="cursor-pointer hover:bg-white hover:text-black hover:rounded-2xl text-white bg-black mb-5" />
+                    <ArrowLeft
+                        onClick={router.back}
+                        size={30}
+                        className="cursor-pointer hover:bg-white hover:text-black hover:rounded-2xl text-white bg-black mb-5"
+                    />
                     <div className="grid md:grid-cols-[300px,1fr] gap-8">
                         {/* Movie Poster */}
                         <Card className="relative group bg-transparent border-0">
-                            <Image src={movie.image} alt={movie.movieName} width={300} height={450} className="rounded-lg object-cover w-full" />
+                            {movie?.image ? (
+                                <Image
+                                    // src={movie.url}
+                                    src={movie.image}
+                                    alt={movie.moviename || "Movie poster"}
+                                    width={300}
+                                    height={450}
+                                    className="rounded-lg object-cover w-full"
+                                />
+                            ) : (
+                                <div className="w-[300px] h-[450px] bg-gray-700 rounded-lg flex items-center justify-center text-gray-400">
+                                    No image available
+                                </div>
+                            )}
+                            {/* <Image src={movie.thumbnailUrl} alt={movie.title} width={300} height={450} className="rounded-lg object-cover w-full" /> */}
                             <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/50 rounded-lg">
-                                <Button variant="outline" className="gap-2">
+                                {/* <Button variant="outline" className="gap-2">
                                     <Play className="w-4 h-4" /> Trailers (2)
-                                </Button>
+                                </Button> */}
                             </div>
                             <div className="absolute bottom-2 left-2 text-sm text-white bg-black/50 px-2 py-1 rounded">In cinemas</div>
                         </Card>
@@ -38,7 +96,7 @@ const MovieDetails = () => {
                         <div className="space-y-6">
                             <div className="flex items-start justify-between">
                                 <div>
-                                    <h1 className="text-4xl font-bold mb-4">{movie.movieName}</h1>
+                                    <h1 className="text-4xl font-bold mb-4">{movie.moviename}</h1>
                                     <div className="flex flex-wrap gap-3 mb-4">
                                         <Badge variant="secondary">2D</Badge>
                                         <Badge variant="secondary">IMAX 2D</Badge>
@@ -54,9 +112,18 @@ const MovieDetails = () => {
                                         <span>1 Nov, 2024</span>
                                     </div>
                                 </div>
-                                <Button variant="ghost" size="icon">
-                                    <Share2 className="w-5 h-5" />
-                                </Button>
+                                <div>
+                                    <Link href={`/movies/${id}/edit`}>
+                                        <Button variant="ghost" size="icon">
+                                            <Edit className="w-10 h-10" />
+                                        </Button>
+                                    </Link>
+                                    <Link href={`/`}>
+                                        <Button variant="ghost" size="icon" onClick={handleDelete}>
+                                            <Trash2 size={30} />
+                                        </Button>
+                                    </Link>
+                                </div>
                             </div>
 
                             <div className="space-y-4">
@@ -68,8 +135,12 @@ const MovieDetails = () => {
                                     <Button variant="secondary" className="px-8">
                                         Rate now
                                     </Button>
-                                    <Link href={`/movies/${id}/${encodeURIComponent('?')}`}>
+                                    {/* <Link href={`/movies/${id}/${encodeURIComponent("?")}`}>
                                         {" "}
+                                        <Button className="bg-pink-500 hover:bg-pink-600 px-8">Book tickets</Button>
+                                    </Link> */}
+
+                                    <Link href={`/movies/${id}/seat-selection?movieName=${encodeURIComponent(movie.moviename)}`}>
                                         <Button className="bg-pink-500 hover:bg-pink-600 px-8">Book tickets</Button>
                                     </Link>
                                 </div>

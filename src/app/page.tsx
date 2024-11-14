@@ -10,13 +10,13 @@ export default function Home() {
             <Navbar />
             <div className="bg-gray-100">
 
-                <div className="py-3 text-gray-100 md:text-black">
-                    <Nav2 />
+                 <div className="py-3 text-gray-100 md:text-black">
+                {/*    <Nav2 />
                 </div>
                     <hr />
                 <div className="mt-5 ">
-                  <Newmovies />
-                </div>
+                  <Newmovies />*/}
+                </div> 
                 <Banner />
                 <div>
                     <Recommended />
